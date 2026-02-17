@@ -1,0 +1,60 @@
+#!/bin/bash
+Clear
+# Configuration
+URL="https://x099xkycxe.ufs.sh/f/ar75CUBjeUn9XsDc3dTNtgWaiOBJXYsTUb2xuCSvQ8H3MLwG"
+ZIP_PATH="/tmp/OpiumwareUI.zip"
+EXTRACT_DIR="/tmp/opium_temp"
+TARGET_DIR="$HOME/Applications"
+FINAL_APP="$TARGET_DIR/Opiumware.app"
+
+# Colors
+R='\033[0;31m'
+G='\033[0;32m'
+B='\033[0;34m'
+NC='\033[0m'
+
+echo -e "${B}[*] Starting installer of new Opiumware UI${NC}"
+
+# 1. Setup & Download
+rm -rf "$FINAL_APP" "$EXTRACT_DIR" "$ZIP_PATH"
+mkdir -p "$TARGET_DIR"
+
+if curl -L "$URL" -o "$ZIP_PATH"; thenf
+    echo -e "${G}[*] Download successful${NC}"
+else
+    echo -e "${R}[X] Download failed${NC}"
+    exit 1
+fi
+
+# 2. Extract and Move
+echo -e "${B}[-] Extracting UI...${NC}"
+unzip -q "$ZIP_PATH" -d "$EXTRACT_DIR"
+APP_SOURCE=$(find "$EXTRACT_DIR" -name "*.app" -not -path "*/__MACOSX/*" -maxdepth 2 | head -n 1)
+
+if [ -n "$APP_SOURCE" ]; then
+    mv "$APP_SOURCE" "$FINAL_APP"
+    echo -e "${G}[*] Moved to $TARGET_DIR${NC}"
+else
+    echo -e "${R}[X] Could not find a valid App bundle in zip${NC}"
+    exit 1
+fi
+
+# 3. Security & Indexing
+echo -e "${B}[-] Bypassing security flags and refreshing system...${NC}"
+sudo xattr -rd com.apple.quarantine "$FINAL_APP" 2>/dev/null
+sudo xattr -cr "$FINAL_APP"
+find "$FINAL_APP/Contents/MacOS" -type f -exec chmod +x {} + 2>/dev/null
+
+# Force macOS to notice the new app
+touch "$FINAL_APP"
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$FINAL_APP"
+
+if [ $? -eq 0 ]; then
+    echo -e "${G}[*] Success! Opening Applications folder now...${NC}"
+    open "$TARGET_DIR"
+else
+    echo -e "${R}[X] Process finished with minor indexing errors${NC}"
+fi
+
+# Cleanup
+rm -rf "$ZIP_PATH" "$EXTRACT_DIR"
