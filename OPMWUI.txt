@@ -19,7 +19,7 @@ echo -e "${B}[*] Starting installer of new Opiumware UI${NC}"
 rm -rf "$FINAL_APP" "$EXTRACT_DIR" "$ZIP_PATH"
 mkdir -p "$TARGET_DIR"
 
-if curl -L "$URL" -o "$ZIP_PATH"; thenf
+if curl -L "$URL" -o "$ZIP_PATH"; then
     echo -e "${G}[*] Download successful${NC}"
 else
     echo -e "${R}[X] Download failed${NC}"
