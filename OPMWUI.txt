@@ -1,10 +1,11 @@
 #!/bin/bash
-Clear
+clear
+
 # Configuration
 URL="https://x099xkycxe.ufs.sh/f/ar75CUBjeUn9XsDc3dTNtgWaiOBJXYsTUb2xuCSvQ8H3MLwG"
 ZIP_PATH="/tmp/OpiumwareUI.zip"
 EXTRACT_DIR="/tmp/opium_temp"
-TARGET_DIR="$HOME/Applications"
+TARGET_DIR="/Applications"
 FINAL_APP="$TARGET_DIR/Opiumware.app"
 
 # Colors
@@ -16,8 +17,9 @@ NC='\033[0m'
 echo -e "${B}[*] Starting installer of new Opiumware UI${NC}"
 
 # 1. Setup & Download
-rm -rf "$FINAL_APP" "$EXTRACT_DIR" "$ZIP_PATH"
-mkdir -p "$TARGET_DIR"
+# Removing existing versions to ensure a clean install
+sudo rm -rf "$FINAL_APP"
+rm -rf "$EXTRACT_DIR" "$ZIP_PATH"
 
 if curl -L "$URL" -o "$ZIP_PATH"; then
     echo -e "${G}[*] Download successful${NC}"
@@ -32,7 +34,8 @@ unzip -q "$ZIP_PATH" -d "$EXTRACT_DIR"
 APP_SOURCE=$(find "$EXTRACT_DIR" -name "*.app" -not -path "*/__MACOSX/*" -maxdepth 2 | head -n 1)
 
 if [ -n "$APP_SOURCE" ]; then
-    mv "$APP_SOURCE" "$FINAL_APP"
+    # sudo is required to move items into the root /Applications folder
+    sudo mv "$APP_SOURCE" "$FINAL_APP"
     echo -e "${G}[*] Moved to $TARGET_DIR${NC}"
 else
     echo -e "${R}[X] Could not find a valid App bundle in zip${NC}"
@@ -43,7 +46,7 @@ fi
 echo -e "${B}[-] Bypassing security flags and refreshing system...${NC}"
 sudo xattr -rd com.apple.quarantine "$FINAL_APP" 2>/dev/null
 sudo xattr -cr "$FINAL_APP"
-find "$FINAL_APP/Contents/MacOS" -type f -exec chmod +x {} + 2>/dev/null
+sudo find "$FINAL_APP/Contents/MacOS" -type f -exec chmod +x {} + 2>/dev/null
 
 # Force macOS to notice the new app
 touch "$FINAL_APP"
